@@ -15,7 +15,6 @@
  */
 package cz.jirutka.spring.data.jdbc
 
-import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource
 import cz.jirutka.spring.data.jdbc.config.AbstractTestConfig
 import cz.jirutka.spring.data.jdbc.sql.LimitOffsetSqlGenerator
 import cz.jirutka.spring.data.jdbc.sql.SqlGeneratorFactoryIT
@@ -31,6 +30,8 @@ import javax.sql.DataSource
 import static MySqlTestConfig.MYSQL_HOST
 import static TestUtils.env
 import static TestUtils.isPortInUse
+
+import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource
 
 @MySqlTestContext
 class MySqlJdbcRepositoryCompoundPkIT extends JdbcRepositoryCompoundPkIT {}

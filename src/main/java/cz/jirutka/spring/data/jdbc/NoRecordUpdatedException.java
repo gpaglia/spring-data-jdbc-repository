@@ -25,7 +25,9 @@ import static org.springframework.util.StringUtils.arrayToCommaDelimitedString;
  */
 public class NoRecordUpdatedException extends IncorrectUpdateSemanticsDataAccessException {
 
-    private final String tableName;
+	private static final long serialVersionUID = -3213285078686197956L;
+	
+	private final String tableName;
     private final Object[] id;
 
 

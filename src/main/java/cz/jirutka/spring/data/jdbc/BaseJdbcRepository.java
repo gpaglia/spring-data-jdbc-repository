@@ -75,8 +75,8 @@ public abstract class BaseJdbcRepository<T, ID extends Serializable>
 
     public BaseJdbcRepository(EntityInformation<T, ID> entityInformation, RowMapper<T> rowMapper,
                               RowUnmapper<T> rowUnmapper, TableDescription table) {
-        Assert.notNull(rowMapper);
-        Assert.notNull(table);
+        Assert.notNull(rowMapper, "Null row mapper");
+        Assert.notNull(table, "Null table");
 
         this.entityInfo = entityInformation != null ? entityInformation : createEntityInformation();
         this.rowUnmapper = rowUnmapper != null ? rowUnmapper : new UnsupportedRowUnmapper<T>();
@@ -164,7 +164,8 @@ public abstract class BaseJdbcRepository<T, ID extends Serializable>
         return jdbcOps.queryForObject(sqlGenerator.count(table), Long.class);
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public void delete(ID id) {
         // Workaround for Groovy that cannot distinguish between two methods
         // with almost the same type erasure and always calls the former one.
@@ -414,7 +415,7 @@ public abstract class BaseJdbcRepository<T, ID extends Serializable>
         return result.toArray();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private EntityInformation<T, ID> createEntityInformation() {
 
         Class<T> entityType = (Class<T>) GenericTypeResolver.resolveTypeArguments(
@@ -423,7 +424,7 @@ public abstract class BaseJdbcRepository<T, ID extends Serializable>
         if (Persistable.class.isAssignableFrom(entityType)) {
             return new PersistableEntityInformation(entityType);
         }
-        return new ReflectionEntityInformation(entityType);
+        return new ReflectionEntityInformation<T, ID>(entityType);
     }
 
     private void throwOnChangeAfterInitialization(String propertyName) {
