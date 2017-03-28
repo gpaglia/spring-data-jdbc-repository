@@ -59,7 +59,7 @@ class SqlGeneratorTest extends Specification {
         setup:
             table.pkColumns = pkColumns(pkSize)
         expect:
-            sqlGenerator.deleteById(table) == "DELETE FROM tab WHERE ${pkPredicate(pkSize)}"
+            sqlGenerator.deleteById(table) == "DELETE FROM tab WHERE ( ${pkPredicate(pkSize)} )"
         where:
             pkSize || desc
             1      || 'simple PK'
@@ -78,7 +78,7 @@ class SqlGeneratorTest extends Specification {
 
     def 'deleteByIds(): when simple PK and given #desc'() {
         expect:
-            sqlGenerator.deleteByIds(table, idsCount) == "DELETE FROM tab WHERE ${whereClause}"
+            sqlGenerator.deleteByIds(table, idsCount) == "DELETE FROM tab WHERE ( ${whereClause} )"
         where:
             idsCount || whereClause        | desc
             1        || 'tid = ?'          | 'one id'
@@ -89,7 +89,7 @@ class SqlGeneratorTest extends Specification {
         setup:
             table.pkColumns = pkColumns(2)
         expect:
-            sqlGenerator.deleteByIds(table, idsCount) == "DELETE FROM tab WHERE ${whereClause}"
+            sqlGenerator.deleteByIds(table, idsCount) == "DELETE FROM tab WHERE ( ${whereClause} )"
         where:
             idsCount || whereClause                                  | desc
             1        || pkPredicate(2)                               | 'one id'
@@ -101,7 +101,7 @@ class SqlGeneratorTest extends Specification {
         setup:
             table.pkColumns = pkColumns(pkSize)
         expect:
-            sqlGenerator.existsById(table) == "SELECT 1 FROM tab WHERE ${pkPredicate(pkSize)}"
+            sqlGenerator.existsById(table) == "SELECT 1 FROM tab WHERE ( ${pkPredicate(pkSize)} )"
         where:
             pkSize || desc
             1      || 'simple PK'
@@ -154,7 +154,7 @@ class SqlGeneratorTest extends Specification {
         setup:
             table.pkColumns = pkColumns(pkSize)
         expect:
-            sqlGenerator.selectById(table) == "SELECT a, b FROM tabx WHERE ${pkPredicate(pkSize)}"
+            sqlGenerator.selectById(table) == "SELECT a, b FROM tabx WHERE ( ${pkPredicate(pkSize)} )"
         where:
             pkSize || desc
             1      || 'simple PK'
@@ -166,11 +166,11 @@ class SqlGeneratorTest extends Specification {
         expect:
             sqlGenerator.selectByIds(table, idsCount) == "SELECT a, b FROM tabx${expected}"
         where:
-            idsCount || expected                  | desc
-            0        || ''                        | 'no id'
-            1        || ' WHERE tid = ?'          | 'one id'
-            2        || ' WHERE tid IN (?, ?)'    | 'two ids'
-            3        || ' WHERE tid IN (?, ?, ?)' | 'several ids'
+            idsCount || expected                  	  | desc
+            0        || ''                            | 'no id'
+            1        || ' WHERE ( tid = ? )'          | 'one id'
+            2        || ' WHERE ( tid IN (?, ?) )'    | 'two ids'
+            3        || ' WHERE ( tid IN (?, ?, ?) )' | 'several ids'
     }
 
     def 'selectByIds(): when composite PK and given #desc'() {
@@ -182,11 +182,11 @@ class SqlGeneratorTest extends Specification {
         then:
             actual == "SELECT a, b FROM tabx${expected}"
         where:
-            idsCount || expected                      | desc
-            0        || ''                            | 'no id'
-            1        || ' WHERE %1'                   | 'one id'
-            2        || ' WHERE (%1) OR (%1)'         | 'two ids'
-            3        || ' WHERE (%1) OR (%1) OR (%1)' | 'several ids'
+            idsCount || expected                          | desc
+            0        || ''                                | 'no id'
+            1        || ' WHERE ( %1 )'                   | 'one id'
+            2        || ' WHERE ( (%1) OR (%1) )'         | 'two ids'
+            3        || ' WHERE ( (%1) OR (%1) OR (%1) )' | 'several ids'
     }
 
 
@@ -196,7 +196,7 @@ class SqlGeneratorTest extends Specification {
         when:
             def actual = sqlGenerator.update(table, [x: ANY, y: ANY, z: ANY])
         then:
-            actual == "UPDATE tab SET x = ?, y = ?, z = ? WHERE ${pkPredicate(idsCount)}"
+            actual == "UPDATE tab SET x = ?, y = ?, z = ? WHERE ( ${pkPredicate(idsCount)} )"
         where:
             idsCount || desc
             1        || 'simple PK'
@@ -217,7 +217,7 @@ class SqlGeneratorTest extends Specification {
                 SELECT row_number() OVER (${orderBy(sort)}) AS rn__, t1__.* FROM (
                     SELECT ${table.selectClause} FROM ${table.fromClause}
                 ) t1__
-            ) t2__ WHERE t2__.rn__ BETWEEN ${firstIndex} AND ${lastIndex}
+            ) t2__ WHERE ( t2__.rn__ BETWEEN ${firstIndex} AND ${lastIndex} )
         """.trim().replaceAll(/\s+/, ' ')
     }
 

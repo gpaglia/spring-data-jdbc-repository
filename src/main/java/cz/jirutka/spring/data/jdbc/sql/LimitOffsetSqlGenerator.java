@@ -16,6 +16,8 @@
 package cz.jirutka.spring.data.jdbc.sql;
 
 import cz.jirutka.spring.data.jdbc.TableDescription;
+import cz.jirutka.spring.data.predicate.SqlPredicate;
+
 import org.springframework.data.domain.Pageable;
 
 import java.sql.DatabaseMetaData;
@@ -44,5 +46,12 @@ public class LimitOffsetSqlGenerator extends DefaultSqlGenerator {
     public String selectAll(TableDescription table, Pageable page) {
         return format("%s LIMIT %d OFFSET %d",
             selectAll(table, page.getSort()), page.getPageSize(), page.getOffset());
+    }
+    
+    // added GP
+    @Override
+    public String selectAll(TableDescription table, Pageable page, SqlPredicate wpredicate) {
+        return format("%s LIMIT %d OFFSET %d",
+            selectAll(table, page.getSort(), wpredicate), page.getPageSize(), page.getOffset());
     }
 }

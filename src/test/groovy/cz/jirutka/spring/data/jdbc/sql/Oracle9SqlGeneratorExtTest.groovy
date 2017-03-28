@@ -16,27 +16,30 @@
 package cz.jirutka.spring.data.jdbc.sql
 
 import cz.jirutka.spring.data.jdbc.TableDescription
+import cz.jirutka.spring.data.predicate.SqlPredicate
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 
 import static org.springframework.data.domain.Sort.Direction.ASC
 
-class Oracle9SqlGeneratorTest extends SqlGeneratorTest {
+class Oracle9SqlGeneratorExtTest extends SqlGeneratorExtTest {
 
     def sqlGenerator = new Oracle9SqlGenerator()
 
 
-    @Override expectedPaginatedQuery(TableDescription table, Pageable page) {
+    @Override expectedPaginatedQuery(TableDescription table, Pageable page, SqlPredicate wpred) {
 
         // If sort is not specified, then it should be sorted by primary key columns.
         def sort = page.sort ?: new Sort(ASC, table.pkColumns)
+		def mapper = { s -> (s == null ? 't2__' : s)};
+		def psql = wpred.toSql(mapper);
 
         """
             SELECT t2__.* FROM (
                 SELECT t1__.*, ROWNUM as rn__ FROM (
                     SELECT ${table.selectClause} FROM ${table.fromClause} ${orderBy(sort)}
                 ) t1__
-            ) t2__ WHERE ( t2__.rn__ > ${page.offset} AND ROWNUM <= ${page.pageSize} )
+            ) t2__ WHERE ( t2__.rn__ > ${page.offset} AND ROWNUM <= ${page.pageSize} ) AND ( ${psql} )
         """.trim().replaceAll(/\s+/, ' ')
     }
 }

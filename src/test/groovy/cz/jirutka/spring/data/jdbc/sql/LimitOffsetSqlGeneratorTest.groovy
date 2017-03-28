@@ -16,16 +16,20 @@
 package cz.jirutka.spring.data.jdbc.sql
 
 import cz.jirutka.spring.data.jdbc.TableDescription
+import cz.jirutka.spring.data.predicate.SqlPredicate
 import org.springframework.data.domain.Pageable
 
-class LimitOffsetSqlGeneratorTest extends SqlGeneratorTest {
+import static cz.jirutka.spring.data.predicate.SqlPredicate.*;
+
+class LimitOffsetSqlGeneratorTest extends SqlGeneratorExtTest {
 
     def sqlGenerator = new LimitOffsetSqlGenerator()
 
 
-    @Override expectedPaginatedQuery(TableDescription table, Pageable page) {
+    @Override expectedPaginatedQuery(TableDescription table, Pageable page, SqlPredicate wpred) {
         def orderBy = page.sort ? orderBy(page.sort) + ' ' : ''
-
-        "SELECT a, b FROM tabx ${orderBy}LIMIT ${page.pageSize} OFFSET ${page.offset}"
+		def psql = wpred.toSql(null);
+		
+        "SELECT a, b FROM tabx WHERE ( ${psql} ) ${orderBy}LIMIT ${page.pageSize} OFFSET ${page.offset}"
     }
 }

@@ -16,11 +16,14 @@
 package cz.jirutka.spring.data.jdbc.sql;
 
 import cz.jirutka.spring.data.jdbc.TableDescription;
+import cz.jirutka.spring.data.predicate.SqlPredicate;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 
@@ -44,7 +47,21 @@ public class Oracle9SqlGenerator extends DefaultSqlGenerator {
 
         return format("SELECT t2__.* FROM ( "
                 + "SELECT t1__.*, ROWNUM as rn__ FROM ( %s ) t1__ "
-                + ") t2__ WHERE t2__.rn__ > %d AND ROWNUM <= %d",
+                + ") t2__ WHERE ( t2__.rn__ > %d AND ROWNUM <= %d )",
             selectAll(table, sort), page.getOffset(), page.getPageSize());
+    }
+    
+    // added GP
+    @Override
+    public String selectAll(TableDescription table, Pageable page, SqlPredicate wpredicate) {
+    	Function<String, String> mapper = (s) -> {
+    		if (s == null) { 
+    			return "t2__";
+    		} else {
+    			return s;
+    		}
+    	};
+
+        return selectAll(table, page) + " AND ( " + wpredicate.toSql(mapper) + " )";
     }
 }

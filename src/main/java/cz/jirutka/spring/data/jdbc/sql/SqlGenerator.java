@@ -17,6 +17,8 @@
 package cz.jirutka.spring.data.jdbc.sql;
 
 import cz.jirutka.spring.data.jdbc.TableDescription;
+import cz.jirutka.spring.data.predicate.SqlPredicate;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
@@ -38,8 +40,14 @@ public interface SqlGenerator {
 
 
     String count(TableDescription table);
+    
+    // added GP
+    String count(TableDescription table, SqlPredicate wpredicate);
 
     String deleteAll(TableDescription table);
+    
+    // added GP
+    String deleteAll(TableDescription table, SqlPredicate wpredicate);
 
     String deleteById(TableDescription table);
 
@@ -50,14 +58,26 @@ public interface SqlGenerator {
     String insert(TableDescription table, Map<String, Object> columns);
 
     String selectAll(TableDescription table);
+    
+    // added GP
+    String selectAll(TableDescription table, SqlPredicate wpredicate);
 
     String selectAll(TableDescription table, Pageable page);
+    
+    // added GP
+    String selectAll(TableDescription table, Pageable page, SqlPredicate wpredicate);
 
     String selectAll(TableDescription table, Sort sort);
+    
+    // added GP
+    String selectAll(TableDescription table, Sort sort, SqlPredicate wpredicate);
 
     String selectById(TableDescription table);
 
     String selectByIds(TableDescription table, int idsCount);
 
     String update(TableDescription table, Map<String, Object> columns);
+    
+    // added GP
+    String update(TableDescription table, Map<String, Object> columns, SqlPredicate wpredicate);
 }

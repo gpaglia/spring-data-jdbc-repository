@@ -17,6 +17,8 @@
 package cz.jirutka.spring.data.jdbc.sql;
 
 import cz.jirutka.spring.data.jdbc.TableDescription;
+import cz.jirutka.spring.data.predicate.SqlPredicate;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -45,32 +47,49 @@ public class DefaultSqlGenerator implements SqlGenerator {
             COMMA = ", ",
             PARAM = " = ?";
 
-
+    @Override
     public boolean isCompatible(DatabaseMetaData metadata) throws SQLException {
         return true;
     }
 
-
+    @Override
     public String count(TableDescription table) {
         return format("SELECT count(*) FROM %s", table.getFromClause());
     }
+    
+    // added GP
+    @Override
+    public String count(TableDescription table, SqlPredicate wpredicate) {
+        return count(table) + " WHERE ( " + wpredicate.toSql(null) + " )";
+    }
 
+    @Override
     public String deleteAll(TableDescription table) {
         return format("DELETE FROM %s", table.getTableName());
     }
+    
+    // added GP
+    @Override
+    public String deleteAll(TableDescription table, SqlPredicate wpredicate) {
+        return deleteAll(table) + " WHERE ( " + wpredicate.toSql(null) + " )";
+    }
 
+    @Override
     public String deleteById(TableDescription table) {
         return deleteByIds(table, 1);
     }
 
+    @Override
     public String deleteByIds(TableDescription table, int idsCount) {
-        return deleteAll(table) + " WHERE " + idsPredicate(table, idsCount);
+        return deleteAll(table) + " WHERE ( " + idsPredicate(table, idsCount) + " )";
     }
 
+    @Override
     public String existsById(TableDescription table) {
-        return format("SELECT 1 FROM %s WHERE %s", table.getTableName(), idPredicate(table));
+        return format("SELECT 1 FROM %s WHERE ( %s )", table.getTableName(), idPredicate(table));
     }
 
+    @Override
     public String insert(TableDescription table, Map<String, Object> columns) {
 
         return format("INSERT INTO %s (%s) VALUES (%s)",
@@ -79,40 +98,70 @@ public class DefaultSqlGenerator implements SqlGenerator {
             repeat("?", COMMA, columns.size()));
     }
 
+    @Override
     public String selectAll(TableDescription table) {
         return format("SELECT %s FROM %s", table.getSelectClause(), table.getFromClause());
     }
+    
+    // added GP
+    @Override
+    public String selectAll(TableDescription table, SqlPredicate wpredicate) {
+        return format("SELECT %s FROM %s WHERE ( %s )", table.getSelectClause(), table.getFromClause(), wpredicate.toSql(null));
+    }
 
+    @Override
     public String selectAll(TableDescription table, Pageable page) {
         Sort sort = page.getSort() != null ? page.getSort() : sortById(table);
 
         return format("SELECT t2__.* FROM ( "
                 + "SELECT row_number() OVER (ORDER BY %s) AS rn__, t1__.* FROM ( %s ) t1__ "
-                + ") t2__ WHERE t2__.rn__ BETWEEN %s AND %s",
+                + ") t2__ WHERE ( t2__.rn__ BETWEEN %s AND %s )",
             orderByExpression(sort), selectAll(table),
             page.getOffset() + 1, page.getOffset() + page.getPageSize());
     }
+    
+    // added GP
+    @Override
+    public String selectAll(TableDescription table, Pageable page, SqlPredicate wpredicate) {
+    	return selectAll(table, page) + " AND ( " + wpredicate.toSql(null) + " )";
+    }
 
+    @Override
     public String selectAll(TableDescription table, Sort sort) {
         return selectAll(table) + (sort != null ? orderByClause(sort) : "");
     }
+    
+    // added GP
+    @Override
+    public String selectAll(TableDescription table, Sort sort, SqlPredicate wpredicate) {
+    	return selectAll(table, wpredicate) + (sort != null ? orderByClause(sort) : "");
+    }
 
+    @Override
     public String selectById(TableDescription table) {
         return selectByIds(table, 1);
     }
 
+    @Override
     public String selectByIds(TableDescription table, int idsCount) {
         return idsCount > 0
-            ? selectAll(table) + " WHERE " + idsPredicate(table, idsCount)
+            ? selectAll(table) + " WHERE ( " + idsPredicate(table, idsCount) + " )"
             : selectAll(table);
     }
 
+    @Override
     public String update(TableDescription table, Map<String, Object> columns) {
 
-        return format("UPDATE %s SET %s WHERE %s",
+        return format("UPDATE %s SET %s WHERE ( %s )",
             table.getTableName(),
             formatParameters(columns.keySet(), COMMA),
             idPredicate(table));
+    }
+    
+    // added GP
+    @Override
+    public String update(TableDescription table, Map<String, Object> columns, SqlPredicate wpredicate) {
+    	return update(table, columns) + " AND ( " + wpredicate.toSql(null) + " )";
     }
 
 

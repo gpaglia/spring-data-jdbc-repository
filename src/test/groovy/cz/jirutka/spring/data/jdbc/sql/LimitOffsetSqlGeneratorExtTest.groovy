@@ -17,26 +17,15 @@ package cz.jirutka.spring.data.jdbc.sql
 
 import cz.jirutka.spring.data.jdbc.TableDescription
 import org.springframework.data.domain.Pageable
-import org.springframework.data.domain.Sort
 
-import static org.springframework.data.domain.Sort.Direction.ASC
+class LimitOffsetSqlGeneratorExtTest extends SqlGeneratorTest {
 
-class Oracle9SqlGeneratorTest extends SqlGeneratorTest {
-
-    def sqlGenerator = new Oracle9SqlGenerator()
+    def sqlGenerator = new LimitOffsetSqlGenerator()
 
 
     @Override expectedPaginatedQuery(TableDescription table, Pageable page) {
+        def orderBy = page.sort ? orderBy(page.sort) + ' ' : ''
 
-        // If sort is not specified, then it should be sorted by primary key columns.
-        def sort = page.sort ?: new Sort(ASC, table.pkColumns)
-
-        """
-            SELECT t2__.* FROM (
-                SELECT t1__.*, ROWNUM as rn__ FROM (
-                    SELECT ${table.selectClause} FROM ${table.fromClause} ${orderBy(sort)}
-                ) t1__
-            ) t2__ WHERE ( t2__.rn__ > ${page.offset} AND ROWNUM <= ${page.pageSize} )
-        """.trim().replaceAll(/\s+/, ' ')
+        "SELECT a, b FROM tabx ${orderBy}LIMIT ${page.pageSize} OFFSET ${page.offset}"
     }
 }

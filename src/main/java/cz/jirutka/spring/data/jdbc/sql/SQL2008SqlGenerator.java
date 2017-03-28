@@ -16,6 +16,8 @@
 package cz.jirutka.spring.data.jdbc.sql;
 
 import cz.jirutka.spring.data.jdbc.TableDescription;
+import cz.jirutka.spring.data.predicate.SqlPredicate;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
@@ -46,5 +48,14 @@ public class SQL2008SqlGenerator extends DefaultSqlGenerator {
 
         return format("%s OFFSET %d ROWS FETCH NEXT %d ROW ONLY",
             selectAll(table, sort), page.getOffset(), page.getPageSize());
+    }
+    
+    // added GP
+    @Override
+    public String selectAll(TableDescription table, Pageable page, SqlPredicate wpredicate) {
+    	Sort sort = page.getSort() != null ? page.getSort() : sortById(table);
+
+        return format("%s OFFSET %d ROWS FETCH NEXT %d ROW ONLY",
+            selectAll(table, sort, wpredicate), page.getOffset(), page.getPageSize());
     }
 }
